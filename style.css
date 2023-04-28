@@ -1,61 +1,66 @@
-#canvas {
-    background-color: cadetblue;
-    background-position: center;
-    background-image: url(img/fondoBJ.jpg);
+body {
+    background: url("https://img.freepik.com/vector-premium/fondo-mesa-poker-color-verde_47243-1073.jpg");
+    background-repeat: no-repeat;
     background-size: cover;
 }
 
-#title {
+
+.container {
+    margin: 0 auto;
     text-align: center;
-    margin: 5px;
-    font-weight: bold;
-    font-size: 2em;
+    color: white;
 }
 
-#canvasDiv {
-    text-align: center;
-}
-
-#botones {
-    margin: 15px;
+.flex-blackjack-row-1,
+.flex-blackjack-row-2,
+.flex-blackjack-row-3 {
     display: flex;
-    align-items: center;
+    padding: 55px;
+    flex-wrap: wrap;
     justify-content: space-evenly;
 }
 
-#info {
+.flex-blackjack-row-2 div {
+    padding: 10px;
+    flex: 1;
+    height: 350px;
     text-align: center;
-    font-size: 1.2em;
-    margin: 20px;
 }
 
-.button {
-    background-color: #00bbd0;
-    border: none;
-    color: black;
-    padding: 15px 32px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    border-radius: 10px;
-    cursor: pointer;
+.flex-blackjack-row-2 div img {
+    padding: 10px;
+    object-fit: contain;
+    width: 180px;
+    height: 228px;
 }
 
-#canvas {
-    border-radius: 10px;
+.flex-blackjack-row-3 div {
+    padding: 10px;
 }
 
-#reset {
-    visibility: hidden;
-    background-color: #15bb1a;
-    border: none;
-    color: black;
-    padding: 15px 32px;
+.flex-blackjack-row-3 div button {
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+table,
+th,
+td {
+    padding: 5px;
+    border: 1px solid white;
+    color: white;
+    align-items: center;
     text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    border-radius: 10px;
-    cursor: pointer;
+}
+
+#win-header {
+    color: lightgreen;
+}
+
+#loss-header {
+    color: #d32f2f;
+}
+
+#draw-header {
+    color: yellow;
 }

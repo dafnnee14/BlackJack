@@ -1,104 +1,253 @@
-// Montamos el canvas con alta resolución
-var canvas = document.getElementById("canvas");
-canvas.width = 1220 * 2;
-canvas.height = 400 * 2;
-canvas.style.width = 1220 + "px";
-canvas.style.height = 400 + "px";
-var ctx = canvas.getContext("2d");
+let blackjackGame = {
+    you: {
+        scoreSpan: '#your-blackjack-result',
+        div: "#your-box",
+        boxSize: '.flex-blackjack-row-2 div',
+        score: 0
+    },
 
-// Classe carta
-class carta {
-    // las variables static pertenece a la clase
-    static x = 50;
-    static y = 50;
+    dealer: {
+        scoreSpan: '#dealer-blackjack-result',
+        div: "#dealer-box",
+        boxSize: '.flex-blackjack-row-2 div',
+        score: 0
+    },
 
-    constructor(valor, palo) {
-        this.img = new Image();
-        this.valor = valor;
-        this.palo = palo;
+    'cards': ["2", "3", "4", "5", "6", "7", "8", "9", "0", 'J', "Q", "K", "A"],
+
+    cardsMap: {
+        2: 2,
+        3: 3,
+        4: 4,
+        5: 5,
+        6: 6,
+        7: 7,
+        8: 8,
+        9: 9,
+        0: 10,
+        K: 10,
+        J: 10,
+        Q: 10,
+        A: [1, 11],
+    },
+
+    'suits': [
+        "C", "D", "H", "S"
+    ],
+
+    wins: 0,
+    losses: 0,
+    draws: 0,
+    isStand: false,
+    isTurnsOver: false,
+    pressOnce: false,
+};
+
+const YOU = blackjackGame["you"];
+const DEALER = blackjackGame["dealer"];
+
+let windowidth = window.screen.width;
+let windowHeight = window.screen.height;
+let winner;
+
+// Button Event Listeners
+document
+    .querySelector("#blackjack-hit-button")
+    .addEventListener("click", blackjackHit);
+
+document
+    .querySelector('#blackjack-stand-button')
+    .addEventListener('click', blackjackStand);
+document
+    .querySelector('#blackjack-deal-button')
+    .addEventListener('click', blackjackDeal);
+document
+    .querySelector('#blackjack-reset-button')
+    .addEventListener('click', blackjackRestart);
+
+function blackjackHit() {
+    if (blackjackGame['isStand'] === false) {
+        let card = randomCard();
+        showCard(card, YOU);
+        updateScore(card.charAt(0), YOU);
     }
 }
 
-// Variables que vamos a usar
-var cartas = [];
-var cartasJugador = [];
-var cartasCrupier = [];
-var indiceCarta = 0;
-var palos = ["S", "H", "D", "C"];
-// Generamos las cartas. Con atributos valor y palo
-for (i = 0; i < 4; i++) {
-    for (j = 1; j <= 13; j++) {
-        cartas.push(new carta(j, palos[i]));
+function randomCard() {
+    let randomIndex = Math.floor(Math.random() * 12);
+    let randomSuit = Math.floor(Math.random() * 3)
+    console.log(blackjackGame['cards'][randomIndex]+blackjackGame["suits"][randomSuit]);
+    return blackjackGame["cards"][randomIndex]+blackjackGame["suits"][randomSuit];
+}
+
+function showCard(card, activePlayer) {
+    if (activePlayer['score'] <= 21) {
+        let cardImage = document.createElement("img");
+        cardImage.src = `ImagesCartas/${card}.svg`;
+        cardImage.style = `width: ${widthSize()}; height: ${heightSize()};`;
+        document.querySelector(activePlayer["div"]).appendChild(cardImage);
     }
 }
 
-//Barajamos las cartas
-for (i = 0; i < 100; i++) {
-    cartas.splice(Math.random() * 52, 0, cartas[0]);
-    cartas.shift();
-}
-
-function dibujarCarta(CJ) {
-    // Tenemos que primero cargar la carta y luego añadir el src
-    // Si no las cartas no cargan en la pagina
-    CJ.img.onload = () => {
-        ctx.drawImage(CJ.img, carta.x, carta.y, 239, 335);
-        carta.x += 300;
-    };
-    // Para cargar la imagen correcta concatenamos el numero y el palo, que coincida con el nombre del fichero
-    CJ.img.src = "imagenes/carta/" + CJ.valor.toString() + CJ.palo + ".svg";
-}
-
-function pedirCarta() {
-    // Ponemos un maximo de cartas que pueda sacar para que el crupier tambíen pueda sacar las suyas
-    if (indiceCarta < 8) {
-        let CJ = cartas[indiceCarta]; //Carta Jugada
-        cartasJugador.push(CJ);
-        dibujarCarta(CJ);
-        indiceCarta++;
-    }
-}
-
-function plantarme() {
-    document.getElementById("pedir").disabled = true;
-    document.getElementById("plantar").disabled = true;
-    document.getElementById("reset").style.visibility = "visible";
-    let pointsUser = 0;
-    let pointsCrupier = 0;
-    let info = document.getElementById("info");
-    // Contamos e imprimimos los puntos del jugador
-    for (i in cartasJugador) {
-        pointsUser += cartasJugador[i].valor;
-    }
-    // Sacamos cartas al crupier y contamos sus puntos
-    while (pointsCrupier < 17) {
-        cartasCrupier.push(cartas[indiceCarta]);
-        pointsCrupier += cartas[indiceCarta].valor;
-        indiceCarta++;
-    }
-    // Putos de la partida se ponen en info
-    info.innerHTML = "Puntuación jugador: " + pointsUser + "<br>Puntuación crupier: " + pointsCrupier;
-    // Dibujamos las cartas del crupier
-    carta.x = 50;
-    carta.y = 400;
-    for (i in cartasCrupier) {
-        dibujarCarta(cartasCrupier[i]);
-    }
-    // Comprobamos ganador
-    if (pointsUser == 21) {
-        info.innerHTML += "<br><b>Blackjack!!! Has ganado!</b>";
-    } else if (pointsUser > 21) {
-        info.innerHTML += "<br><b>Has perdido... Te has pasado de puntos</b>";
-    } else if (pointsCrupier > 21) {
-        info.innerHTML += "<br><b>Has ganado!!! El croupier se ha pasado de puntos</b>";
-    } else if (pointsCrupier >= pointsUser) {
-        info.innerHTML += "<br><b>Ha ganado el croupier...</b>";
+function widthSize() {
+    if (windowidth > 1000) {
+        let newWidthSize = window.screen.width * 0.1;
+        return newWidthSize;
     } else {
-        info.innerHTML += "<br><b>Has ganado!!!</b>";
+        return window.screen.width * 0.18;
     }
 }
 
-//Recarga la pagina cuando se presiona el botton
-function playagain() {
-    location.reload(true);
+function heightSize() {
+    if (windowHeight > 1000) {
+        let newheightSize = window.screen.height * 0.18;
+        return newheightSize;
+    } else {
+        return window.screen.height * 0.15;
+    }
+}
+
+function updateScore(card, activePlayer) {
+    if (card === 'A') {
+        if (activePlayer["score"] + blackjackGame["cardsMap"][card][1] <= 21) {
+            activePlayer["score"] += blackjackGame["cardsMap"][card][1];
+        } else {
+            activePlayer["score"] += blackjackGame["cardsMap"][card][0];
+        }
+    } else {
+        activePlayer["score"] += blackjackGame["cardsMap"][card];
+    }
+    console.log(YOU["score"]);
+    console.log(card);
+    console.log(DEALER["score"]);
+    showScore(activePlayer);
+}
+
+function showScore(activePlayer) {
+    // El Bust es "pasarse", por ejemplo, cuando se sobrepasa el veintiuno en una mano.
+    if (activePlayer['score'] > 21) {
+        document.querySelector(activePlayer['scoreSpan']).textContent = "BUST!";
+        document.querySelector(activePlayer['scoreSpan']).style.color = "red";
+    } else {
+        document.querySelector(activePlayer['scoreSpan']).textContent =
+            activePlayer["score"];
+    }
+}
+
+function blackjackStand() {
+    if (blackjackGame.pressOnce === false) {
+        blackjackGame['isStand'] = true;
+        let yourImages = document
+            .querySelector("#your-box")
+            .querySelectorAll("img");
+
+        for (let i = 0; i < yourImages.length; i++) {
+            let card = randomCard();
+            showCard(card, DEALER);
+            updateScore(card.charAt(0), DEALER);
+            showScore(DEALER);
+
+            blackjackGame['isTurnsOver'] = true;
+
+            computeWinner();
+            showWinner(winner);
+        }
+    }
+    blackjackGame.pressOnce = true;
+}
+
+function computeWinner() {
+    if (YOU['score'] <= 21) {
+        if (YOU['score'] > DEALER['score'] || DEALER['score'] > 21) {
+            winner = YOU;
+        }
+        else if (YOU['score'] < DEALER['score']) {
+            winner = DEALER;
+        }
+        else if (YOU['score'] === DEALER['score']) {
+            winner = "Draw"
+        }
+    }
+
+    else if (YOU['score'] > 21 && DEALER['score'] > 21) {
+        winner = DEALER;
+    }
+
+    else if (YOU['score'] > 21 && DEALER['score'] > 21) {
+        winner = "None";
+    }
+
+    return winner;
+}
+
+function showWinner() {
+    let message, messageColor;
+
+    if (winner === YOU) {
+        message = 'You Win!'
+        messageColor = '#00e676'
+        document.querySelector('#wins').textContent = blackjackGame['wins'] += 1;
+    }
+
+    if (winner === DEALER) {
+        message = 'You lost!'
+        messageColor = 'red'
+        document.querySelector('#losses').textContent = blackjackGame['losses'] += 1;
+    }
+
+    if (winner === 'Draw') {
+        message = 'You Drew!'
+        messageColor = 'yellow'
+        document.querySelector('#draws').textContent = blackjackGame['draws'] += 1;
+    }
+    if (winner === 'None') {
+        message = 'You Both Busted!'
+        messageColor = 'orange'
+    }
+
+    document.querySelector('#blackjack-result').textContent = message;
+    document.querySelector('#blackjack-result').style.color = messageColor;
+}
+
+function blackjackDeal() {
+
+    if (blackjackGame['isTurnsOver'] === true) {
+
+        let yourImages = document.querySelector('#your-box').querySelectorAll('img');
+        let dealerImages = document.querySelector('#dealer-box').querySelectorAll('img');
+
+        YOU['score'] = DEALER['score'] = 0;
+        document.querySelector('#your-blackjack-result').textContent = 0;
+        document.querySelector('#dealer-blackjack-result').textContent = 0;
+
+        document.querySelector('#your-blackjack-result').style.color = 'white';
+        document.querySelector('#dealer-blackjack-result').textContent = '0';
+
+        document.querySelector("#blackjack-result").textContent = "";
+        document.querySelector('#blackjack-result').textContent = "Let's Play";
+
+        for (let i = 0; i < yourImages.length; i++) {
+            yourImages[i].remove();
+        }
+        for (let i = 0; i < dealerImages.length; i++) {
+            dealerImages[i].remove();
+        }
+
+        blackjackGame["isStand"] = false;
+        blackjackGame.pressOnce = false;
+        blackjackGame["isTurnsOver"] = false;
+    }
+}
+
+function blackjackRestart() {
+
+    blackjackDeal();
+    document.querySelector('#wins').textContent = 0;
+    document.querySelector('#losses').textContent = 0;
+    document.querySelector('#draws').textContent = 0;
+
+    blackjackGame.wins = 0;
+    blackjackGame.losses = 0;
+    blackjackGame.draws = 0;
+
 }
